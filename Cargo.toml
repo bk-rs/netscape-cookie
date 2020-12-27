@@ -3,6 +3,14 @@ name = "netscape-cookie"
 version = "0.1.0"
 authors = ["vkill <vkill.net@gmail.com>"]
 edition = "2018"
+description = "Netscape HTTP Cookie File parser"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/bk-rs/netscape-cookie"
+homepage = "https://github.com/bk-rs/netscape-cookie"
+documentation = "https://docs.rs/netscape-cookie"
+keywords = []
+categories = []
+readme = "README.md"
 
 [features]
 feature-cookie = ["cookie", "time"]
