@@ -4,8 +4,14 @@ version = "0.1.0"
 authors = ["vkill <vkill.net@gmail.com>"]
 edition = "2018"
 
+[features]
+feature-cookie = ["cookie", "time"]
+
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = [] }
+
+cookie = { version = "0.14", default-features = false, features = [], optional = true }
+time = { version = "0.2", default-features = false, features = [], optional = true }
 
 [dev-dependencies]
 curl = "0.4"

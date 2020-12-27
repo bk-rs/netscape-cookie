@@ -5,6 +5,9 @@ use std::str::ParseBoolError;
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 
+#[cfg(feature = "feature-cookie")]
+mod feature_cookie;
+
 const HTTP_ONLY_PREFIX: &str = "#HttpOnly_";
 
 #[derive(Debug, Clone)]
