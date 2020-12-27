@@ -1,0 +1,8 @@
+[package]
+name = "netscape-cookie"
+version = "0.1.0"
+authors = ["vkill <vkill.net@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = [] }
