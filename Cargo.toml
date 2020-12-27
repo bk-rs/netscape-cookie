@@ -6,3 +6,7 @@ edition = "2018"
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = [] }
+
+[dev-dependencies]
+curl = "0.4"
+tempfile = "3.1"
