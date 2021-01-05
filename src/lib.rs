@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn test_parse_demo() -> Result<(), String> {
-        let txt_content = fs::read_to_string("tests/txt_files/demo.txt").unwrap();
+        let txt_content = fs::read_to_string("tests/files/demo_cookies.txt").unwrap();
 
         let cookies = parse(txt_content.as_bytes()).map_err(|err| err.to_string())?;
 
