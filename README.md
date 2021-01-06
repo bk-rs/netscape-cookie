@@ -5,7 +5,7 @@
 ## Dev
 
 ```
-cargo clippy --all -- -D clippy::all && \
+cargo clippy --all --all-features -- -D clippy::all && \
 cargo fmt --all -- --check
 ```
 

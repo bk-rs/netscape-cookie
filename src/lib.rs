@@ -89,11 +89,11 @@ pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
         if s.starts_with(HTTP_ONLY_PREFIX) {
             http_only = true;
             s = &buf[HTTP_ONLY_PREFIX.len()..n];
-        } else if s.starts_with("#") {
+        } else if s.starts_with('#') {
             continue;
         }
 
-        let mut split = s.split("\t");
+        let mut split = s.split('\t');
 
         let domain = split.next().ok_or(ParseError::DomainMissing)?;
 
@@ -126,7 +126,7 @@ pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
 
         let value = split.next().ok_or(ParseError::ValueMissing)?;
 
-        if !split.next().is_none() {
+        if split.next().is_some() {
             return Err(ParseError::TooManyElements);
         }
 
