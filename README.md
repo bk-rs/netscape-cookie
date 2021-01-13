@@ -5,7 +5,7 @@
 ## Dev
 
 ```
-cargo clippy --all --all-features -- -D clippy::all && \
+cargo +nightly clippy --all --all-features -- -D clippy::all && \
 cargo fmt --all -- --check
 ```
 
