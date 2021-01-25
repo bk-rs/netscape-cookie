@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt;
 use std::io::{self, BufRead, Cursor};
 use std::num::ParseIntError;
@@ -66,6 +67,17 @@ impl fmt::Display for ParseError {
 impl From<io::Error> for ParseError {
     fn from(err: io::Error) -> Self {
         Self::IoError((err.kind(), err.to_string()))
+    }
+}
+
+impl Error for ParseError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            ParseError::IncludeSubdomainsInvalid(err) => Some(err),
+            ParseError::SecureInvalid(err) => Some(err),
+            ParseError::ExpiresInvalid(err) => Some(err),
+            _ => None,
+        }
     }
 }
 
