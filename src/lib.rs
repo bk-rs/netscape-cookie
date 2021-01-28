@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fmt;
 use std::io::{self, BufRead, Cursor};
 use std::num::ParseIntError;
@@ -68,6 +69,8 @@ impl From<io::Error> for ParseError {
         Self::IoError((err.kind(), err.to_string()))
     }
 }
+
+impl Error for ParseError {}
 
 pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
     let mut cursor = Cursor::new(bytes);
