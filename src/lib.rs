@@ -70,16 +70,7 @@ impl From<io::Error> for ParseError {
     }
 }
 
-impl Error for ParseError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            ParseError::IncludeSubdomainsInvalid(err) => Some(err),
-            ParseError::SecureInvalid(err) => Some(err),
-            ParseError::ExpiresInvalid(err) => Some(err),
-            _ => None,
-        }
-    }
-}
+impl Error for ParseError {}
 
 pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
     let mut cursor = Cursor::new(bytes);
