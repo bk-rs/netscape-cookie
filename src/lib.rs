@@ -1,8 +1,9 @@
-use std::error::Error;
-use std::fmt;
-use std::io::{self, BufRead, Cursor};
-use std::num::ParseIntError;
-use std::str::ParseBoolError;
+use std::{
+    error, fmt,
+    io::{self, BufRead, Cursor},
+    num::ParseIntError,
+    str::ParseBoolError,
+};
 
 use chrono::{DateTime, NaiveDateTime, Utc};
 
@@ -44,7 +45,6 @@ pub enum ParseError {
     ValueMissing,
     TooManyElements,
 }
-
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -63,14 +63,13 @@ impl fmt::Display for ParseError {
         }
     }
 }
+impl error::Error for ParseError {}
 
 impl From<io::Error> for ParseError {
     fn from(err: io::Error) -> Self {
         Self::IoError((err.kind(), err.to_string()))
     }
 }
-
-impl Error for ParseError {}
 
 pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
     let mut cursor = Cursor::new(bytes);
