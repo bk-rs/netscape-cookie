@@ -1,6 +1,6 @@
 use std::{
     error, fmt,
-    io::{self, BufRead, Cursor},
+    io::{self, BufRead},
     num::ParseIntError,
     str::ParseBoolError,
 };
@@ -71,26 +71,24 @@ impl From<io::Error> for ParseError {
     }
 }
 
-pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
-    let mut cursor = Cursor::new(bytes);
+pub fn parse(mut bytes: impl BufRead) -> Result<Vec<Cookie>, ParseError> {
     let mut buf = String::new();
 
     let mut cookies: Vec<Cookie> = vec![];
 
     loop {
         buf.clear();
-        let n = match cursor.read_line(&mut buf)? {
-            0 => break,
-            1 => continue,
-            n => n - 1,
+        match bytes.read_line(&mut buf)? {
+            0 => break Ok(cookies),
+            _ => {}
         };
 
-        let mut s = &buf[..n];
+        let mut s: &str = &buf;
 
         let mut http_only = false;
         if s.starts_with(HTTP_ONLY_PREFIX) {
             http_only = true;
-            s = &buf[HTTP_ONLY_PREFIX.len()..n];
+            s = &buf[HTTP_ONLY_PREFIX.len()..];
         } else if s.starts_with('#') {
             continue;
         }
@@ -145,8 +143,6 @@ pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
 
         cookies.push(cookie);
     }
-
-    Ok(cookies)
 }
 
 #[cfg(test)]
