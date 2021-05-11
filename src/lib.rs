@@ -45,6 +45,81 @@ pub enum ParseError {
     ValueMissing,
     TooManyElements,
 }
+impl Cookie {
+    pub fn parse(mut bytes: impl BufRead) -> Result<Vec<Self>, ParseError> {
+        let mut buf = String::new();
+
+        let mut cookies: Vec<Self> = vec![];
+    
+        loop {
+            buf.clear();
+            match bytes.read_line(&mut buf)? {
+                0 => break Ok(cookies),
+                _ => {}
+            };
+    
+            let mut s: &str = &buf;
+    
+            let mut http_only = false;
+            if s.starts_with(HTTP_ONLY_PREFIX) {
+                http_only = true;
+                s = buf.trim_start_matches(HTTP_ONLY_PREFIX);
+            } else if s.starts_with('#') {
+                continue;
+            }
+    
+            let mut split = s.split('\t');
+    
+            let domain = split.next().ok_or(ParseError::DomainMissing)?;
+    
+            let include_subdomains = split.next().ok_or(ParseError::IncludeSubdomainsMissing)?;
+            let include_subdomains: bool = include_subdomains
+                .to_ascii_lowercase()
+                .parse()
+                .map_err(ParseError::IncludeSubdomainsInvalid)?;
+    
+            let path = split.next().ok_or(ParseError::PathMissing)?;
+    
+            let secure = split.next().ok_or(ParseError::SecureMissing)?;
+            let secure: bool = secure
+                .to_ascii_lowercase()
+                .parse()
+                .map_err(ParseError::SecureInvalid)?;
+    
+            let expires = split.next().ok_or(ParseError::ExpiresMissing)?;
+            let expires: u64 = expires.parse().map_err(ParseError::ExpiresInvalid)?;
+            let expires = if expires == 0 {
+                CookieExpires::Session
+            } else {
+                CookieExpires::DateTime(DateTime::<Utc>::from_utc(
+                    NaiveDateTime::from_timestamp(expires as i64, 0),
+                    Utc,
+                ))
+            };
+    
+            let name = split.next().ok_or(ParseError::NameMissing)?;
+    
+            let value = split.next().ok_or(ParseError::ValueMissing)?;
+    
+            if split.next().is_some() {
+                return Err(ParseError::TooManyElements);
+            }
+    
+            let cookie = Cookie {
+                http_only,
+                domain: domain.to_owned(),
+                include_subdomains,
+                path: path.to_owned(),
+                secure,
+                expires,
+                name: name.to_owned(),
+                value: value.to_owned(),
+            };
+    
+            cookies.push(cookie);
+        }
+    }
+}
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -71,78 +146,8 @@ impl From<io::Error> for ParseError {
     }
 }
 
-pub fn parse(mut bytes: impl BufRead) -> Result<Vec<Cookie>, ParseError> {
-    let mut buf = String::new();
-
-    let mut cookies: Vec<Cookie> = vec![];
-
-    loop {
-        buf.clear();
-        match bytes.read_line(&mut buf)? {
-            0 => break Ok(cookies),
-            _ => {}
-        };
-
-        let mut s: &str = &buf;
-
-        let mut http_only = false;
-        if s.starts_with(HTTP_ONLY_PREFIX) {
-            http_only = true;
-            s = &buf[HTTP_ONLY_PREFIX.len()..];
-        } else if s.starts_with('#') {
-            continue;
-        }
-
-        let mut split = s.split('\t');
-
-        let domain = split.next().ok_or(ParseError::DomainMissing)?;
-
-        let include_subdomains = split.next().ok_or(ParseError::IncludeSubdomainsMissing)?;
-        let include_subdomains: bool = include_subdomains
-            .to_ascii_lowercase()
-            .parse()
-            .map_err(ParseError::IncludeSubdomainsInvalid)?;
-
-        let path = split.next().ok_or(ParseError::PathMissing)?;
-
-        let secure = split.next().ok_or(ParseError::SecureMissing)?;
-        let secure: bool = secure
-            .to_ascii_lowercase()
-            .parse()
-            .map_err(ParseError::SecureInvalid)?;
-
-        let expires = split.next().ok_or(ParseError::ExpiresMissing)?;
-        let expires: u64 = expires.parse().map_err(ParseError::ExpiresInvalid)?;
-        let expires = if expires == 0 {
-            CookieExpires::Session
-        } else {
-            CookieExpires::DateTime(DateTime::<Utc>::from_utc(
-                NaiveDateTime::from_timestamp(expires as i64, 0),
-                Utc,
-            ))
-        };
-
-        let name = split.next().ok_or(ParseError::NameMissing)?;
-
-        let value = split.next().ok_or(ParseError::ValueMissing)?;
-
-        if split.next().is_some() {
-            return Err(ParseError::TooManyElements);
-        }
-
-        let cookie = Cookie {
-            http_only,
-            domain: domain.to_owned(),
-            include_subdomains,
-            path: path.to_owned(),
-            secure,
-            expires,
-            name: name.to_owned(),
-            value: value.to_owned(),
-        };
-
-        cookies.push(cookie);
-    }
+pub fn parse(bytes: &[u8]) -> Result<Vec<Cookie>, ParseError> {
+    Cookie::parse(bytes)
 }
 
 #[cfg(test)]
