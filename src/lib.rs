@@ -50,42 +50,40 @@ impl Cookie {
         let mut buf = String::new();
 
         let mut cookies: Vec<Self> = vec![];
-    
+
         loop {
             buf.clear();
-            match bytes.read_line(&mut buf)? {
+            let s = match bytes.read_line(&mut buf)? {
                 0 => break Ok(cookies),
-                _ => {}
+                _ => buf.trim(),
             };
-    
-            let mut s: &str = &buf;
-    
-            let mut http_only = false;
-            if s.starts_with(HTTP_ONLY_PREFIX) {
-                http_only = true;
-                s = buf.trim_start_matches(HTTP_ONLY_PREFIX);
-            } else if s.starts_with('#') {
+
+            let (s, http_only) = if s.starts_with(HTTP_ONLY_PREFIX) {
+                (s.trim_start_matches(HTTP_ONLY_PREFIX), true)
+            } else if s.starts_with('#') || s.is_empty() {
                 continue;
-            }
-    
+            } else {
+                (s, false)
+            };
+
             let mut split = s.split('\t');
-    
+
             let domain = split.next().ok_or(ParseError::DomainMissing)?;
-    
+
             let include_subdomains = split.next().ok_or(ParseError::IncludeSubdomainsMissing)?;
             let include_subdomains: bool = include_subdomains
                 .to_ascii_lowercase()
                 .parse()
                 .map_err(ParseError::IncludeSubdomainsInvalid)?;
-    
+
             let path = split.next().ok_or(ParseError::PathMissing)?;
-    
+
             let secure = split.next().ok_or(ParseError::SecureMissing)?;
             let secure: bool = secure
                 .to_ascii_lowercase()
                 .parse()
                 .map_err(ParseError::SecureInvalid)?;
-    
+
             let expires = split.next().ok_or(ParseError::ExpiresMissing)?;
             let expires: u64 = expires.parse().map_err(ParseError::ExpiresInvalid)?;
             let expires = if expires == 0 {
@@ -96,15 +94,15 @@ impl Cookie {
                     Utc,
                 ))
             };
-    
+
             let name = split.next().ok_or(ParseError::NameMissing)?;
-    
+
             let value = split.next().ok_or(ParseError::ValueMissing)?;
-    
+
             if split.next().is_some() {
                 return Err(ParseError::TooManyElements);
             }
-    
+
             let cookie = Cookie {
                 http_only,
                 domain: domain.to_owned(),
@@ -115,7 +113,7 @@ impl Cookie {
                 name: name.to_owned(),
                 value: value.to_owned(),
             };
-    
+
             cookies.push(cookie);
         }
     }
